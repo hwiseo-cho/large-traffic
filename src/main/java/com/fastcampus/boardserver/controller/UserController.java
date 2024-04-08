@@ -1,8 +1,12 @@
 package com.fastcampus.boardserver.controller;
 
+import com.fastcampus.boardserver.aop.LoginCheck;
 import com.fastcampus.boardserver.dto.UserDTO;
+import com.fastcampus.boardserver.dto.request.UserDeleteId;
 import com.fastcampus.boardserver.dto.request.UserLoginRequest;
+import com.fastcampus.boardserver.dto.request.UserUpdatePasswordRequest;
 import com.fastcampus.boardserver.dto.response.LoginResponse;
+import com.fastcampus.boardserver.dto.response.UserInfoResponse;
 import com.fastcampus.boardserver.service.Impl.UserServiceImpl;
 import com.fastcampus.boardserver.service.UserService;
 import com.fastcampus.boardserver.utils.SessionUtil;
@@ -21,6 +25,8 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserServiceImpl userService;
+
+    private static LoginResponse loginResponse;
 
     /**
      * 사용자 등록
@@ -58,5 +64,55 @@ public class UserController {
         }
 
         return HttpStatus.OK;
+    }
+    @GetMapping("my-info")
+    public UserInfoResponse memberInfo(HttpSession session) {
+        String id = SessionUtil.getLoginMemberId(session);
+
+        if(id == null) {
+            id = SessionUtil.getLoginAdminId(session);
+        }
+
+        UserDTO memberInfo = userService.getUserInfo(id);
+        return new UserInfoResponse(memberInfo);
+    }
+
+    @PutMapping("logout")
+    public void logout(HttpSession session) {
+        SessionUtil.clear(session);
+    }
+
+    @PatchMapping("password")
+    @LoginCheck(type = LoginCheck.UserType.ADMIN)
+    public ResponseEntity<LoginResponse> updateUserPassword(@RequestParam(value = "accountId", required = false) String accountId, @RequestBody UserUpdatePasswordRequest passwordRequest, HttpSession session) {
+        ResponseEntity<LoginResponse> responseEntity = null;
+        String id = accountId;
+        String beforePassword = passwordRequest.getBeforePassword();
+        String afterPassword = passwordRequest.getAfterPassword();
+
+        try {
+            userService.updatePassword(id, beforePassword, afterPassword);
+            ResponseEntity.ok(new ResponseEntity<LoginResponse>(loginResponse, HttpStatus.OK));
+        } catch (IllegalArgumentException e) {
+            log.error(e.getMessage());
+            responseEntity = new ResponseEntity<LoginResponse>(HttpStatus.BAD_REQUEST);
+        }
+        return responseEntity;
+    }
+
+    @DeleteMapping("delete")
+    public ResponseEntity<LoginResponse> deleteId(@RequestBody UserDeleteId userDeleteId, HttpSession session) {
+        ResponseEntity<LoginResponse> responseEntity = null;
+        String id = SessionUtil.getLoginMemberId(session);
+
+        try {
+            userService.deleteId(id, userDeleteId.getPassword());
+            responseEntity = new ResponseEntity<LoginResponse>(loginResponse, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            log.error("delete 실패");
+            responseEntity = new ResponseEntity<LoginResponse>(HttpStatus.BAD_REQUEST);
+        }
+
+        return responseEntity;
     }
 }
