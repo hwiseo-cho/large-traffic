@@ -12,5 +12,5 @@ public @interface LoginCheck {
     public static enum UserType {
         USER, ADMIN
     }
-    UserType type();
+    UserType[] type();
 }
