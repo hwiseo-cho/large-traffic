@@ -19,12 +19,23 @@ public class PostSearchServiceImpl implements PostSearchService {
 
     private final PostSearchMapper postSearchMapper;
 
-    @Cacheable(value = "getPosts", key = "'getPosts' + #postSearchRequest?.name + #postSearchRequest?.categoryId")
+    @Cacheable(value = "getPosts", key = "'getPosts' + #postSearchRequest.name + #postSearchRequest.categoryId")
     @Override
     public List<PostDTO> getPosts(PostSearchRequest postSearchRequest) {
         List<PostDTO> postDTOList = null;
         try {
             postDTOList = postSearchMapper.selectPosts(postSearchRequest);
+        } catch (RuntimeException e) {
+            log.error(e.getMessage());
+        }
+        return postDTOList;
+    }
+
+    @Override
+    public List<PostDTO> getPostByTag(String tagName) {
+        List<PostDTO> postDTOList = null;
+        try {
+            postDTOList = postSearchMapper.getPostByTag(tagName);
         } catch (RuntimeException e) {
             log.error(e.getMessage());
         }

@@ -21,17 +21,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PostSearchController {
 
-    private final PostSearchServiceImpl postSearchServie;
+    private final PostSearchServiceImpl postSearchService;
 
     @PostMapping
     public PostSearchResponse search(@RequestBody PostSearchRequest postSearchRequest) {
-        List<PostDTO> postDTOList = postSearchServie.getPosts(postSearchRequest);
+        List<PostDTO> postDTOList = postSearchService.getPosts(postSearchRequest);
         return new PostSearchResponse(postDTOList);
     }
 
     @Getter @Setter
     @AllArgsConstructor
-    private static class PostSearchResponse {
+    static class PostSearchResponse {
         private List<PostDTO> postDTOList;
     }
 }
