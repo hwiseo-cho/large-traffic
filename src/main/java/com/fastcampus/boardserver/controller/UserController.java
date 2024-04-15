@@ -43,6 +43,7 @@ public class UserController {
 
     @PostMapping("sign-in")
     public HttpStatus login(@RequestBody UserLoginRequest userLoginRequest, HttpSession session) {
+        log.info("log test {}", userLoginRequest.toString());
         ResponseEntity<LoginResponse> responseEntity = null;
         LoginResponse loginResponse;
 

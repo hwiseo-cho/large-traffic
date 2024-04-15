@@ -12,5 +12,5 @@ public interface TagMapper {
 
     public void deletePostTag(int tagId);
 
-    public void createPostTag(Integer tagId, Integer postId);
+    public void createPostTag(int tagId, int postId);
 }
